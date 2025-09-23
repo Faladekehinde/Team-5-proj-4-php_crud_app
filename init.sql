@@ -8,5 +8,6 @@ CREATE TABLE students (
 );
 
 INSERT INTO students (name, email) VALUES
-('Alice Smith', 'alice@example.com'),
-('Bob Johnson', 'bob@example.com');
+('Falade Kehinde', 'dafaladexy@gmail.com'),
+('Oyedeji Oyeku', 'deji@example.com');
+('Samuel' 'Fregene', 'Sam@example.com');
