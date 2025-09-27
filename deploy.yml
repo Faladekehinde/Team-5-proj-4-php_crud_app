@@ -1,6 +1,10 @@
 ---
-- hosts: staging
+- hosts: "{{ target_env }}"
   become: yes
+  vars:
+    web_root: /var/www/html
+    db_user: root
+    db_pass: yourpassword   # 👈 set your DB root/admin password
   tasks:
     - name: Install Apache, PHP, MySQL client, unzip
       apt:
@@ -23,18 +27,19 @@
     - name: Extract artifact
       unarchive:
         src: "/tmp/app.zip"
-        dest: "/var/www/html"
+        dest: "{{ web_root }}"
         remote_src: yes
+        extra_opts: [ -o ]   # overwrite existing
 
     - name: Move build contents
-      command: mv /var/www/html/build/* /var/www/html/
+      command: mv {{ web_root }}/build/* {{ web_root }}/
 
     - name: Import init.sql into MySQL
       mysql_db:
-        login_user: root
-        login_password: yourpassword
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pass }}"
         state: import
-        target: /var/www/html/init.sql
+        target: "{{ web_root }}/init.sql"
 
     - name: Restart Apache
       service:
