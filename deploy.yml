@@ -1,45 +1,45 @@
-name: Deploy PHP CRUD app
-hosts: "{{ target_env }}"
-become: yes
-vars:
-app_dir: /var/www/php-crud-app
-artifact_name: "app-{{ build_number }}.zip"
+---
+- name: Deploy PHP CRUD app
+  hosts: "{{ target_env }}"
+  become: yes
+  vars:
+    app_dir: /var/www/php-crud-app
+    artifact_name: "app-{{ build_number }}.zip"
 
-tasks:
+  tasks:
+    - name: Ensure target directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
 
-name: Ensure target directory exists
-file:
-path: "{{ app_dir }}"
-state: directory
-owner: www-data
-group: www-data
-mode: '0755'
+    - name: Download artifact from Nexus
+      get_url:
+        url: "http://34.204.37.173:8081/repository/php-artifacts/{{ artifact_name }}"
+        dest: "/tmp/{{ artifact_name }}"
+        url_username: "{{ nexus_user | default('') }}"
+        url_password: "{{ nexus_pass | default('') }}"
+      register: download_result
 
-name: Download artifact from Nexus
-get_url:
-url: "http://34.204.37.173:8081/repository/php-artifacts/{{ artifact_name }}"
-dest: "/tmp/{{ artifact_name }}"
-url_username: "{{ nexus_user | default('') }}"
-url_password: "{{ nexus_pass | default('') }}"
-register: download_result
+    - name: Unpack artifact into app directory
+      unarchive:
+        src: "/tmp/{{ artifact_name }}"
+        dest: "{{ app_dir }}"
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
 
-name: Unpack artifact into app directory
-unarchive:
-src: "/tmp/{{ artifact_name }}"
-dest: "{{ app_dir }}"
-remote_src: yes
-owner: www-data
-group: www-data
-mode: '0755'
+    - name: Restart Apache (Debian/Ubuntu)
+      service:
+        name: apache2
+        state: restarted
+      when: ansible_os_family == "Debian"
 
-name: Restart Apache (or PHP-FPM)
-service:
-name: apache2
-state: restarted
-when: ansible_os_family == "Debian"
-
-name: Restart httpd (for CentOS/RHEL)
-service:
-name: httpd
-state: restarted
-when: ansible_os_family == "RedHat"
+    - name: Restart httpd (CentOS/RHEL)
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_os_family == "RedHat"
