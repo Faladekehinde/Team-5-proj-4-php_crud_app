@@ -17,7 +17,7 @@ mode: '0755'
 
 name: Download artifact from Nexus
 get_url:
-url: "http://54.227.114.42:8081/repository/php-artifacts/{{ artifact_name }}"
+url: "http://34.204.37.173:8081/repository/php-artifacts/{{ artifact_name }}"
 dest: "/tmp/{{ artifact_name }}"
 url_username: "{{ nexus_user | default('') }}"
 url_password: "{{ nexus_pass | default('') }}"
